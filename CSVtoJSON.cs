@@ -28,26 +28,29 @@ class Program
     }
 
     // Read data from CSV file
-    static List<Dictionary<string, string>> ReadCSVFile(string filePath)
+static List<Dictionary<string, string>> ReadCSVFile(string filePath)
+{
+    using (var reader = new StreamReader(filePath))
+    using (var csv = new CsvReader(reader, System.Globalization.CultureInfo.InvariantCulture))
     {
-        using (var reader = new StreamReader(filePath))
-        using (var csv = new CsvReader(reader, System.Globalization.CultureInfo.InvariantCulture))
+        csv.Configuration.HasHeaderRecord = true;
+        var records = csv.GetRecords<dynamic>();
+        List<Dictionary<string, string>> dataList = new List<Dictionary<string, string>>();
+        foreach (var record in records)
         {
-            csv.Configuration.HasHeaderRecord = true;
-            var records = csv.GetRecords<dynamic>();
-            List<Dictionary<string, string>> dataList = new List<Dictionary<string, string>>();
-            foreach (var record in records)
+            Dictionary<string, string> data = new Dictionary<string, string>();
+            foreach (var field in record)
             {
-                Dictionary<string, string> data = new Dictionary<string, string>();
-                foreach (var field in record)
-                {
-                    data.Add(field.Key, field.Value.ToString());
-                }
-                dataList.Add(data);
+                // Check for null values before converting to string
+                string value = field.Value != null ? field.Value.ToString() : null;
+                data.Add(field.Key, value);
             }
-            return dataList;
+            dataList.Add(data);
         }
+        return dataList;
     }
+}
+
 
     // Preprocess and clean the data
     static List<Dictionary<string, string>> PreprocessAndCleanData(List<Dictionary<string, string>> records)
